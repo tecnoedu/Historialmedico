@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial Clínico Digital - Carolina Gómez Bonino</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen pb-20">
+
+    <!-- Encabezado Móvil Integrado -->
+    <header class="sticky top-0 z-40 bg-slate-900 text-white shadow-md border-b border-slate-800">
+        <div class="max-w-xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-lg text-white shadow-sm ring-2 ring-blue-400/30">
+                    CG
+                </div>
+                <div>
+                    <h1 class="text-base font-bold leading-tight text-white">Carolina Gómez Bonino</h1>
+                    <p class="text-xs text-slate-300">DNI 22.716.669 • Obra Social: DAMSU</p>
+                </div>
+            </div>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
+                Consulta 2026
+            </span>
+        </div>
+
+        <!-- Barra NAVEGABLE Superior -->
+        <nav class="max-w-xl mx-auto px-2 bg-slate-950 flex justify-around border-t border-slate-800/80 text-xs font-medium text-slate-400">
+            <button onclick="switchTab('resumen', this)" class="tab-btn active-tab flex-1 py-2.5 text-center border-b-2 border-blue-500 text-white font-semibold flex justify-center items-center gap-1.5">
+                <i class="fa-solid fa-file-waveform text-blue-400"></i>
+                <span>Historial</span>
+            </button>
+            <button onclick="switchTab('portales', this)" class="tab-btn flex-1 py-2.5 text-center border-b-2 border-transparent hover:text-slate-200 flex justify-center items-center gap-1.5">
+                <i class="fa-solid fa-key text-amber-400"></i>
+                <span>Portales y Claves</span>
+            </button>
+            <button onclick="switchTab('ficha', this)" class="tab-btn flex-1 py-2.5 text-center border-b-2 border-transparent hover:text-slate-200 flex justify-center items-center gap-1.5">
+                <i class="fa-solid fa-id-card text-emerald-400"></i>
+                <span>Datos Paciente</span>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Modal Toast de Notificación -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs py-2.5 px-4 rounded-full shadow-2xl border border-slate-700 opacity-0 transition-all duration-300 pointer-events-none flex items-center space-x-2">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+        <span id="toast-text">Copiado al portapapeles</span>
+    </div>
+
+    <main class="max-w-xl mx-auto px-3 pt-3 space-y-4">
+
+        <!-- Acceso Directo Google Drive Destacado -->
+        <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl p-3 shadow-md border border-slate-700 text-white flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                    <i class="fa-brands fa-google-drive text-lg"></i>
+                </div>
+                <div>
+                    <h2 class="text-xs font-bold text-slate-100">Carpeta Médica en la Nube</h2>
+                    <p class="text-[11px] text-slate-300">Todos los estudios originales en PDF</p>
+                </div>
+            </div>
+            <a href="https://drive.google.com/drive/folders/1i1BdEgP6xrA83ohCOgKcd6K05vUA-gse?usp=sharing" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1 shadow transition-all active:scale-95">
+                <span>Abrir</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+            </a>
+        </div>
+
+        <!-- ================= PESTAÑA 1: HISTORIAL DE ESTUDIOS ================= -->
+        <section id="tab-resumen" class="tab-content block space-y-3">
+            
+            <!-- Filtros Rápidos -->
+            <div class="flex items-center justify-between pt-1">
+                <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center">
+                    <i class="fa-solid fa-filter text-blue-600 mr-1.5"></i>
+                    Filtrar Estudios
+                </h2>
+                <span id="item-count" class="text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-bold">5 de 5</span>
+            </div>
+
+            <!-- Scrollable Pills Filter -->
+            <div class="flex space-x-1.5 overflow-x-auto pb-1 hide-scrollbar text-xs">
+                <button onclick="filterType('all', this)" class="filter-btn bg-blue-600 text-white font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-sm">
+                    Todos
+                </button>
+                <button onclick="filterType('tc', this)" class="filter-btn bg-white text-slate-700 border border-slate-300 font-medium px-3 py-1.5 rounded-lg whitespace-nowrap">
+                    Tomografía (TC)
+                </button>
+                <button onclick="filterType('lab', this)" class="filter-btn bg-white text-slate-700 border border-slate-300 font-medium px-3 py-1.5 rounded-lg whitespace-nowrap">
+                    Laboratorio
+                </button>
+                <button onclick="filterType('doppler', this)" class="filter-btn bg-white text-slate-700 border border-slate-300 font-medium px-3 py-1.5 rounded-lg whitespace-nowrap">
+                    Doppler
+                </button>
+                <button onclick="filterType('rm', this)" class="filter-btn bg-white text-slate-700 border border-slate-300 font-medium px-3 py-1.5 rounded-lg whitespace-nowrap">
+                    Resonancia (RM)
+                </button>
+            </div>
+
+            <!-- Lista de Estudios Médicos Cronológicos -->
+            <div class="space-y-3" id="timeline-container">
+
+                <!-- Item 1: TC Tórax Abdomen Pelvis (30/09/2026) -->
+                <article class="timeline-item tc bg-white rounded-xl p-3.5 shadow-sm border border-slate-200 hover:border-slate-300 transition-all">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-blue-100 text-blue-800 text-[11px] font-bold px-2 py-0.5 rounded">
+                                TC
+                            </span>
+                            <span class="text-xs font-bold text-slate-900">30/09/2026</span>
+                        </div>
+                        <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">Dr. F. L. Bruno</span>
+                    </div>
+
+                    <h3 class="text-sm font-bold text-slate-900 mt-2">TC Tórax, Abdomen y Pelvis</h3>
+                    
+                    <ul class="mt-2 text-xs text-slate-700 space-y-1.5 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                        <li class="flex items-start"><i class="fa-solid fa-chevron-right text-blue-500 text-[10px] mt-1 mr-1.5"></i><span><strong class="text-slate-900">Tórax:</strong> Engrosamiento pleuroapical bilateral y tractos densos bibasales.</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-chevron-right text-blue-500 text-[10px] mt-1 mr-1.5"></i><span><strong class="text-slate-900">Pared Abdominal:</strong> Hernia umbilical de contenido graso sin complicaciones.</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-chevron-right text-blue-500 text-[10px] mt-1 mr-1.5"></i><span><strong class="text-slate-900">Abdomen/Pelvis:</strong> Órganos sin lesiones ni líquido libre. Sin litiasis.</span></li>
+                    </ul>
+
+                    <div class="mt-3 flex items-center justify-between pt-2 border-t border-slate-100">
+                        <span class="text-[11px] text-slate-500 font-medium">Documento Adjunto:</span>
+                        <a href="https://drive.google.com/file/d/1ubi-kKukDRStcxeFo7JRpoPw9613_yjA/view?usp=drivesdk" target="_blank" class="inline-flex items-center text-xs font-bold text-blue-700 hover:text-blue-900 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 active:scale-95 transition-all">
+                            <i class="fa-solid fa-file-pdf text-red-500 mr-1.5"></i>
+                            <span>Ver PDF TC</span>
+                            <i class="fa-solid fa-external-link ml-1 text-[10px]"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <!-- Item 2: Análisis de Laboratorio (20/08/2026) -->
+                <article class="timeline-item lab bg-white rounded-xl p-3.5 shadow-sm border border-slate-200 hover:border-slate-300 transition-all">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2 py-0.5 rounded">
+                                LAB
+                            </span>
+                            <span class="text-xs font-bold text-slate-900">20/08/2026</span>
+                        </div>
+                        <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">Dra. M. I. Bermejo</span>
+                    </div>
+
+                    <h3 class="text-sm font-bold text-slate-900 mt-2">Análisis de Laboratorio Completo</h3>
+                    
+                    <div class="mt-2 text-xs text-slate-700 space-y-2 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                        <div class="flex items-center justify-between text-amber-900 bg-amber-50 p-2 rounded border border-amber-200/80 font-medium">
+                            <span class="flex items-center"><i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1.5 text-sm"></i> Vitamina D (25-OH): <strong class="ml-1 text-slate-900">16.90 ng/ml</strong></span>
+                            <span class="text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded font-bold">Bajo</span>
+                        </div>
+                        <p><strong class="text-slate-900">• Metabolismo:</strong> Glucemia 81.7 mg/dl | Perfil Renal y Hepático normales.</p>
+                        <p><strong class="text-slate-900">• Perfil Tiroideo:</strong> TSH: 2.68 µUI/ml | T4: 6.37 mcg% (Normal).</p>
+                        <p><strong class="text-slate-900">• Autoinmunidad:</strong> FAN, ANCA, Anti-Ro, Factor Reumatoideo (-) Negativos.</p>
+                    </div>
+
+                    <div class="mt-3 flex items-center justify-between pt-2 border-t border-slate-100">
+                        <span class="text-[11px] text-slate-500 font-medium">Documento Adjunto:</span>
+                        <a href="https://drive.google.com/file/d/19_t4LxRKnd5gWZ8yWEDi3ko7V8X_zXzx/view?usp=drivesdk" target="_blank" class="inline-flex items-center text-xs font-bold text-blue-700 hover:text-blue-900 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 active:scale-95 transition-all">
+                            <i class="fa-solid fa-file-pdf text-red-500 mr-1.5"></i>
+                            <span>Ver PDF Lab</span>
+                            <i class="fa-solid fa-external-link ml-1 text-[10px]"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <!-- Item 3: Eco Doppler Venoso (16/04/2026) -->
+                <article class="timeline-item doppler bg-white rounded-xl p-3.5 shadow-sm border border-slate-200 hover:border-slate-300 transition-all">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-purple-100 text-purple-800 text-[11px] font-bold px-2 py-0.5 rounded">
+                                DOPPLER
+                            </span>
+                            <span class="text-xs font-bold text-slate-900">16/04/2026</span>
+                        </div>
+                        <span class="text-[11px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded font-semibold">Antecedente IVC</span>
+                    </div>
+
+                    <h3 class="text-sm font-bold text-slate-900 mt-2">Eco Doppler Venoso Miembros Inferiores</h3>
+                    
+                    <ul class="mt-2 text-xs text-slate-700 space-y-1.5 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                        <li class="flex items-start"><i class="fa-solid fa-chevron-right text-purple-500 text-[10px] mt-1 mr-1.5"></i><span><strong class="text-slate-900">MID (Derecho):</strong> Insuficiencia VSM segmento crural (reflujo 3.05 s) y vena intersafena (reflujo 2.06 s).</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-chevron-right text-purple-500 text-[10px] mt-1 mr-1.5"></i><span><strong class="text-slate-900">MII (Izquierdo):</strong> Eje venoso permeable y competente.</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-chevron-right text-purple-500 text-[10px] mt-1 mr-1.5"></i><span><strong class="text-slate-900">Sistema Profundo:</strong> Permeable y competente bilateralmente.</span></li>
+                    </ul>
+
+                    <div class="mt-3 flex items-center justify-between pt-2 border-t border-slate-100">
+                        <span class="text-[11px] text-slate-500 font-medium">Documento Adjunto:</span>
+                        <a href="https://drive.google.com/file/d/1giX1irXoMR3rIOkjGxnpzuqsT7A0w0-N/view?usp=drivesdk" target="_blank" class="inline-flex items-center text-xs font-bold text-blue-700 hover:text-blue-900 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 active:scale-95 transition-all">
+                            <i class="fa-solid fa-file-pdf text-red-500 mr-1.5"></i>
+                            <span>Ver PDF Doppler</span>
+                            <i class="fa-solid fa-external-link ml-1 text-[10px]"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <!-- Item 4: RM Columna Lumbosacra (23/06/2025) -->
+                <article class="timeline-item rm bg-white rounded-xl p-3.5 shadow-sm border border-slate-200 hover:border-slate-300 transition-all">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-indigo-100 text-indigo-800 text-[11px] font-bold px-2 py-0.5 rounded">
+                                RM
+                            </span>
+                            <span class="text-xs font-bold text-slate-900">23/06/2025</span>
+                        </div>
+                        <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">Dr. W. Stadler</span>
+                    </div>
+
+                    <h3 class="text-sm font-bold text-slate-900 mt-2">RM Columna Lumbosacra</h3>
+                    
+                    <ul class="mt-2 text-xs text-slate-700 space-y-1.5 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                        <li class="flex items-start"><i class="fa-solid fa-chevron-right text-indigo-500 text-[10px] mt-1 mr-1.5"></i><span><strong class="text-slate-900">Eje Columna:</strong> Sutil desviación levoconvexa.</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-chevron-right text-indigo-500 text-[10px] mt-1 mr-1.5"></i><span><strong class="text-slate-900">Discos:</strong> Altura e intensidad de señal conservadas.</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-chevron-right text-indigo-500 text-[10px] mt-1 mr-1.5"></i><span><strong class="text-slate-900">Canal:</strong> Sin protrusiones discales. Forámenes neurales libres.</span></li>
+                    </ul>
+
+                    <div class="mt-3 flex items-center justify-between pt-2 border-t border-slate-100">
+                        <span class="text-[11px] text-slate-500 font-medium">Documento Adjunto:</span>
+                        <a href="https://drive.google.com/file/d/100IwM85HqhgFAJ-sO1rVAxzisGy6VSxv/view?usp=drivesdk" target="_blank" class="inline-flex items-center text-xs font-bold text-blue-700 hover:text-blue-900 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 active:scale-95 transition-all">
+                            <i class="fa-solid fa-file-pdf text-red-500 mr-1.5"></i>
+                            <span>Ver PDF RM</span>
+                            <i class="fa-solid fa-external-link ml-1 text-[10px]"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <!-- Item 5: RM y Angio-RM Cerebral (03/02/2021) -->
+                <article class="timeline-item rm bg-white rounded-xl p-3.5 shadow-sm border border-slate-200 hover:border-slate-300 transition-all">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-indigo-100 text-indigo-800 text-[11px] font-bold px-2 py-0.5 rounded">
+                                ANGIO-RM
+                            </span>
+                            <span class="text-xs font-bold text-slate-900">03/02/2021</span>
+                        </div>
+                        <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">Cerebral</span>
+                    </div>
+
+                    <h3 class="text-sm font-bold text-slate-900 mt-2">Resonancia y Angio-RM Cerebral</h3>
+                    
+                    <ul class="mt-2 text-xs text-slate-700 space-y-1.5 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                        <li class="flex items-start"><i class="fa-solid fa-chevron-right text-indigo-500 text-[10px] mt-1 mr-1.5"></i><span><strong class="text-slate-900">Encéfalo:</strong> Señal habitual. Sin áreas de isquemia.</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-chevron-right text-indigo-500 text-[10px] mt-1 mr-1.5"></i><span><strong class="text-slate-900">Vascular:</strong> Mínima dilatación sacular de ~2 mm en segmento A2 derecho.</span></li>
+                    </ul>
+
+                    <div class="mt-3 flex items-center justify-between pt-2 border-t border-slate-100">
+                        <span class="text-[11px] text-slate-500 font-medium">Documento Adjunto:</span>
+                        <a href="https://drive.google.com/file/d/1GZKkurSwdF3Prd0Kp5sOwCUXU-7U6NdF/view?usp=drivesdk" target="_blank" class="inline-flex items-center text-xs font-bold text-blue-700 hover:text-blue-900 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 active:scale-95 transition-all">
+                            <i class="fa-solid fa-file-pdf text-red-500 mr-1.5"></i>
+                            <span>Ver PDF Angio</span>
+                            <i class="fa-solid fa-external-link ml-1 text-[10px]"></i>
+                        </a>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- ================= PESTAÑA 2: PORTALES Y CLAVES ================= -->
+        <section id="tab-portales" class="tab-content hidden space-y-3">
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 flex items-center justify-between">
+                <span class="flex items-center gap-1.5 font-medium">
+                    <i class="fa-solid fa-lightbulb text-amber-600 text-sm"></i>
+                    Toca cualquier cuadro para copiar el dato al instante
+                </span>
+            </div>
+
+            <!-- FUESMEN -->
+            <div class="bg-white rounded-xl p-3.5 shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-x-ray text-blue-600"></i>
+                        FUESMEN (Imágenes)
+                    </h3>
+                    <a href="https://host01.fuesmen.edu.ar/patientportal/index.php" target="_blank" class="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
+                        Ir al Portal <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </a>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <button onclick="copyToClipboard('22716669', 'Usuario FUESMEN')" class="bg-slate-50 border border-slate-200 hover:bg-blue-50 p-2 rounded-lg text-left transition-colors flex justify-between items-center">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block font-semibold">USUARIO</span>
+                            <span class="font-bold text-slate-800">22716669</span>
+                        </div>
+                        <i class="fa-regular fa-copy text-slate-400"></i>
+                    </button>
+                    <button onclick="copyToClipboard('352963201', 'Clave FUESMEN')" class="bg-slate-50 border border-slate-200 hover:bg-blue-50 p-2 rounded-lg text-left transition-colors flex justify-between items-center">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block font-semibold">CLAVE</span>
+                            <span class="font-bold text-slate-800">352963201</span>
+                        </div>
+                        <i class="fa-regular fa-copy text-slate-400"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- LABINFO -->
+            <div class="bg-white rounded-xl p-3.5 shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-flask text-emerald-600"></i>
+                        LABINFO (Laboratorio)
+                    </h3>
+                    <a href="https://labinfo.com.ar/" target="_blank" class="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
+                        Ir al Portal <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </a>
+                </div>
+                <button onclick="copyToClipboard('306210', 'Protocolo LABINFO')" class="w-full bg-slate-50 border border-slate-200 hover:bg-emerald-50 p-2 rounded-lg text-left transition-colors flex justify-between items-center text-xs">
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-semibold">PROTOCOLO</span>
+                        <span class="font-bold text-slate-800">306210</span>
+                    </div>
+                    <i class="fa-regular fa-copy text-slate-400"></i>
+                </button>
+            </div>
+
+            <!-- BIOBOX CLOUD -->
+            <div class="bg-white rounded-xl p-3.5 shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-hospital text-purple-600"></i>
+                        BIOBOX (Clí. Francesa)
+                    </h3>
+                    <a href="https://v.bioboxcloud.com/login?institucion=clinica_francesa_mdz" target="_blank" class="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
+                        Ir al Portal <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </a>
+                </div>
+                <button onclick="copyToClipboard('63JVLFP9', 'Clave BIOBOX')" class="w-full bg-slate-50 border border-slate-200 hover:bg-purple-50 p-2 rounded-lg text-left transition-colors flex justify-between items-center text-xs">
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-semibold">CLAVE DE ACCESO</span>
+                        <span class="font-bold text-slate-800">63JVLFP9</span>
+                    </div>
+                    <i class="fa-regular fa-copy text-slate-400"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- ================= PESTAÑA 3: FICHA DEL PACIENTE ================= -->
+        <section id="tab-ficha" class="tab-content hidden space-y-3">
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 space-y-3">
+                <h3 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-user-gear text-blue-600"></i>
+                    Datos Personales Clínicos
+                </h3>
+
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div class="p-2.5 bg-slate-50 rounded-lg">
+                        <span class="text-slate-400 block font-medium text-[10px]">Nombre Completo</span>
+                        <span class="font-bold text-slate-800 text-sm">Carolina Gómez Bonino</span>
+                    </div>
+                    <div class="p-2.5 bg-slate-50 rounded-lg">
+                        <span class="text-slate-400 block font-medium text-[10px]">DNI</span>
+                        <span class="font-bold text-slate-800 text-sm">22.716.669</span>
+                    </div>
+                    <div class="p-2.5 bg-slate-50 rounded-lg">
+                        <span class="text-slate-400 block font-medium text-[10px]">Fecha Nacimiento / Edad</span>
+                        <span class="font-bold text-slate-800">16/03/1972 (54 años)</span>
+                    </div>
+                    <div class="p-2.5 bg-slate-50 rounded-lg">
+                        <span class="text-slate-400 block font-medium text-[10px]">Obra Social</span>
+                        <span class="font-bold text-slate-800">DAMSU</span>
+                    </div>
+                </div>
+
+                <h4 class="text-xs font-bold text-slate-900 pt-2 border-t border-slate-100 flex items-center gap-1.5">
+                    <i class="fa-solid fa-notes-medical text-red-500"></i>
+                    Alertas Clínicas Principales
+                </h4>
+
+                <div class="space-y-2 text-xs">
+                    <div class="p-2.5 bg-amber-50 rounded-lg border border-amber-200 text-amber-900 flex items-start gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-600 mt-0.5"></i>
+                        <div>
+                            <strong class="block">Hipovitaminosis D</strong>
+                            <span class="text-[11px] text-amber-800">Valor reciente de Vitamina D en 16.90 ng/ml (Lab 20/08/2026). Requiere suplementación.</span>
+                        </div>
+                    </div>
+
+                    <div class="p-2.5 bg-blue-50 rounded-lg border border-blue-200 text-blue-900 flex items-start gap-2">
+                        <i class="fa-solid fa-heart-pulse text-blue-600 mt-0.5"></i>
+                        <div>
+                            <strong class="block">Insuficiencia Venosa Crónica (MID)</strong>
+                            <span class="text-[11px] text-blue-800">Reflujo VSM segmento crural (3.05 s) e intersafena (2.06 s) en miembro inferior derecho.</span>
+                        </div>
+                    </div>
+
+                    <div class="p-2.5 bg-indigo-50 rounded-lg border border-indigo-200 text-indigo-900 flex items-start gap-2">
+                        <i class="fa-solid fa-brain text-indigo-600 mt-0.5"></i>
+                        <div>
+                            <strong class="block">Hallazgo Vascular Cerebral (2021)</strong>
+                            <span class="text-[11px] text-indigo-800">Mínima dilatación sacular de ~2 mm en segmento A2 derecho por Angio-RM.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Scripts Interactivos -->
+    <script>
+        // Función para cambiar de Pestaña (Navegación)
+        function switchTab(tabId, element) {
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+                tab.classList.remove('block');
+            });
+
+            // Remover clase activa de botones
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'text-white', 'font-semibold');
+                btn.classList.add('border-transparent', 'text-slate-400');
+            });
+
+            // Mostrar pestaña seleccionada
+            const selectedTab = document.getElementById('tab-' + tabId);
+            if (selectedTab) {
+                selectedTab.classList.remove('hidden');
+                selectedTab.classList.add('block');
+            }
+
+            // Activar botón seleccionado
+            if (element) {
+                element.classList.remove('border-transparent', 'text-slate-400');
+                element.classList.add('border-blue-500', 'text-white', 'font-semibold');
+            }
+        }
+
+        // Función para copiar texto al portapapeles
+        function copyToClipboard(text, label) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast(`${label}: "${text}" copiado`);
+            } catch (err) {
+                console.error('Error al copiar: ', err);
+            }
+            
+            document.body.removeChild(textarea);
+        }
+
+        // Mostrar Toast emergente
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastText = document.getElementById('toast-text');
+            
+            toastText.textContent = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+
+        // Función para filtrar por tipo de estudio
+        function filterType(category, targetElement) {
+            const items = document.querySelectorAll('.timeline-item');
+            const buttons = document.querySelectorAll('.filter-btn');
+            let visibleCount = 0;
+
+            // Estilos de botones
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white', 'font-semibold');
+                btn.classList.add('bg-white', 'text-slate-700', 'border', 'border-slate-300');
+            });
+
+            if(targetElement) {
+                targetElement.classList.remove('bg-white', 'text-slate-700', 'border', 'border-slate-300');
+                targetElement.classList.add('bg-blue-600', 'text-white', 'font-semibold');
+            }
+
+            // Filtrar elementos
+            items.forEach(item => {
+                if (category === 'all' || item.classList.contains(category)) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            document.getElementById('item-count').textContent = `${visibleCount} de ${items.length}`;
+        }
+    </script>
+</body>
+</html>
